@@ -1,12 +1,5 @@
-import streamlit as st
-import re
-#import openai
-from bertopic import BERTopic
-from sentence_transformers import SentenceTransformer
 import networkx as nx
 import matplotlib.pyplot as plt
-from collections import defaultdict
-
 documents = {
     "skeletal system":{
         "description": "The human skeletal system consists of bones, cartilage, ligaments, and tendons. The skeleton provides support, protection, and movement for the body. The bones in the body are classified into two categories: axial skeleton and appendicular skeleton. The axial skeleton consists of the skull, spine, ribs, and sternum, while the appendicular skeleton includes the limbs and pelvic girdle.",
@@ -49,51 +42,19 @@ documents = {
         "related_topics": ["muscles", "skeletal system", "circulatory system", "nervous system", "digestive system", "endocrine system", "immune system", "integumentary system", "senses", "bones", "cartilage", "ligaments", "tendons"]
     }
 }
-# Function to read and split Markdown by H1 headers
-def read_markdown_and_split_by_chapters(md_file):
-    content = md_file.read().decode("utf-8")
-    
-    # Regular expression to match H1 headers and split the content into chapters
-    chapters = re.split(r'(?=# )', content)  # Split at each '# '
-    chapters = [chapter.strip() for chapter in chapters if chapter.strip()]
-    
-    return chapters
 
-# Streamlit app layout
-def main():
-    st.title("Markdown Topic Modeling, Prerequisites, and Knowledge Graph")
-    
-    st.subheader("Upload Markdown Files")
-    md_files = st.file_uploader("Upload Markdown Files", type="md", accept_multiple_files=True)
-    
-    if md_files:
-        all_chapters = []
-        
-        # Process each uploaded Markdown file
-        for md_file in md_files:
-            chapters = read_markdown_and_split_by_chapters(md_file)
-            all_chapters.extend(chapters)  # Add chapters from this file to the total list
-        
-        st.write(f"Total number of chapters extracted: {len(all_chapters)}")
-        
-        # Create a knowledge graph
-        G = nx.Graph()
+# Create a knowledge graph
+G = nx.Graph()
 
-        # connect documents that share a common topic
-        for topic1 in documents:
-            for topic2 in documents:
-                if topic1 != topic2 and any(topic in documents[topic2]["related_topics"] for topic in documents[topic1]["related_topics"]):
-                    G.add_edge(topic1, topic2)
-        
+# connect documents that share a common topic
+for topic1 in documents:
+    for topic2 in documents:
+        if topic1 != topic2 and any(topic in documents[topic2]["related_topics"] for topic in documents[topic1]["related_topics"]):
+            G.add_edge(topic1, topic2)
 
-        # print the graph
-        print(G.nodes())
-        print(G.edges())
-        # plot the graph
-        fig = nx.draw(G, with_labels=True)
-        
-        
-        st.pyplot(fig)
-
-if __name__ == "__main__":
-    main()
+# print the graph
+print(G.nodes())
+print(G.edges())
+# plot the graph
+nx.draw(G, with_labels=True)
+plt.show()
