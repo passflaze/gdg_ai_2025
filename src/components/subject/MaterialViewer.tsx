@@ -6,10 +6,8 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.js",
-  import.meta.url
-).toString();
+// Set up the PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 const sampleQuestion = {
   text: "The CNS is where the information is sorted",
@@ -24,6 +22,7 @@ const MaterialViewer: React.FC = () => {
   const [userAnswer, setUserAnswer] = useState<boolean | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   useEffect(() => {
     if (selectedMaterial) {
@@ -33,6 +32,7 @@ const MaterialViewer: React.FC = () => {
       setUserAnswer(null);
       setIsCorrect(null);
       setShowFeedback(false);
+      setPdfError(null);
     }
   }, [selectedMaterial]);
 
@@ -44,6 +44,12 @@ const MaterialViewer: React.FC = () => {
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
+    setPdfError(null);
+  };
+
+  const onDocumentLoadError = (error: Error) => {
+    console.error("Error loading PDF:", error);
+    setPdfError("Error loading PDF. Please try again later.");
   };
 
   const handleAnswer = (answer: boolean) => {
@@ -78,18 +84,26 @@ const MaterialViewer: React.FC = () => {
 
       <div className="flex-1 bg-gray-900 overflow-auto p-4">
         <div className="flex flex-col items-center">
-          <Document
-            file="/src/data/textbook1.pdf"
-            onLoadSuccess={onDocumentLoadSuccess}
-          >
-            <Page
-              pageNumber={pageNumber}
-              renderTextLayer={false}
-              renderAnnotationLayer={false}
-              scale={1.2}
-              className="max-w-full"
-            />
-          </Document>
+          {pdfError ? (
+            <div className="text-red-400 p-4">{pdfError}</div>
+          ) : (
+            <Document
+              file="textbook1.pdf"
+              onLoadSuccess={onDocumentLoadSuccess}
+              onLoadError={onDocumentLoadError}
+              loading={
+                <div className="text-white">Loading PDF...</div>
+              }
+            >
+              <Page
+                pageNumber={pageNumber}
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
+                scale={1.2}
+                className="max-w-full"
+              />
+            </Document>
+          )}
         </div>
 
         <div className="flex justify-center mt-4 space-x-4">
