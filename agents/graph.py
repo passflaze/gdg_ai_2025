@@ -52,9 +52,29 @@ for topic1 in documents:
         if topic1 != topic2 and any(topic in documents[topic2]["related_topics"] for topic in documents[topic1]["related_topics"]):
             G.add_edge(topic1, topic2)
 
-# print the graph
-print(G.nodes())
-print(G.edges())
-# plot the graph
-nx.draw(G, with_labels=True)
+# Optional: print node and edge lists (your original commands)
+print("Nodes:", G.nodes())
+print("Edges:", G.edges())
+
+# Use a layout for better spacing
+pos = nx.spring_layout(G, seed=42)
+
+plt.figure(figsize=(12, 8))
+
+nx.draw(
+    G, pos,
+    with_labels=True,
+    node_size=800,
+    node_color="skyblue",
+    edge_color="gray",
+    font_size=10,
+    font_weight="bold"
+)
+
+if nx.get_edge_attributes(G, 'label'):
+    edge_labels = nx.get_edge_attributes(G, 'label')
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=8)
+
+plt.axis('off')
+plt.title("Knowledge Graph")
 plt.show()
